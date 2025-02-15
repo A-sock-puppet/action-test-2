@@ -1,0 +1,38 @@
+name: Compile and Commit Typst Files
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Compile Typst to HTML
+        uses: A-sock-puppet/compile-typst-action@v1.0.1
+        with:
+          source_paths: 'report.typ'
+          output_paths: 'index.html'
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages  # 检出 gh-pages 分支
+          path: gh-pages  # 将 gh-pages 分支的内容放到 gh-pages 目录
+
+      - name: Copy compiled HTML to gh-pages branch
+        run: |
+          cp index.html gh-pages/
+          cd gh-pages
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git add index.html
+          git commit -m "[github action] Compiled Typst to HTML"
+          git push origin gh-pages
